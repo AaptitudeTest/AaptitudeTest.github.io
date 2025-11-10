@@ -19,23 +19,25 @@
       font-size: 16px;
       margin: 5px 0;
     }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-      background-color: #fff;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
     #status {
       margin-top: 10px;
       font-style: italic;
+    }
+    .result-card {
+      background: white;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .result-field {
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #eee;
+    }
+    .label {
+      font-weight: bold;
+      color: #007bff;
     }
   </style>
 </head>
@@ -48,10 +50,7 @@
 
   <p id="status">Loading CSV file from GitHub...</p>
 
-  <table id="resultsTable" style="display:none;">
-    <thead id="tableHead"></thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+  <div id="resultsContainer"></div>
 
   <script>
     let csvData = [];
@@ -83,39 +82,28 @@
     });
 
     function displayResults(data) {
-      const table = document.getElementById('resultsTable');
-      const thead = document.getElementById('tableHead');
-      const tbody = document.getElementById('tableBody');
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '';
 
       if (data.length === 0) {
-        table.style.display = 'none';
-        alert('No results found.');
+        container.innerHTML = '<p>No results found.</p>';
         return;
       }
 
-      thead.innerHTML = '';
-      tbody.innerHTML = '';
+      data.forEach((row, index) => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
 
-      const headers = Object.keys(data[0]);
-      const headerRow = document.createElement('tr');
-      headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-
-      data.forEach(row => {
-        const tr = document.createElement('tr');
+        const headers = Object.keys(row);
         headers.forEach(h => {
-          const td = document.createElement('td');
-          td.textContent = row[h] || '';
-          tr.appendChild(td);
+          const fieldDiv = document.createElement('div');
+          fieldDiv.className = 'result-field';
+          fieldDiv.innerHTML = `<span class="label">${h}:</span> ${row[h] || ''}`;
+          card.appendChild(fieldDiv);
         });
-        tbody.appendChild(tr);
-      });
 
-      table.style.display = 'table';
+        container.appendChild(card);
+      });
     }
   </script>
 </body>
