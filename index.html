@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App List Search</title>
+  <title>أسماء الطلبة</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
@@ -43,12 +43,15 @@
 </head>
 <body>
 
-  <h2>Search App List</h2>
+  <img src="https://portal.ku.edu.kw/dist/img/Kuwait_University_logo.png">
+<center><h1><B> اختبار القدرات الأكاديمية</B></h1></center>
+<center><h1>أسماء الطلبة للفرصة الأولى 25-26</h1></center>
 
-  <input type="text" id="searchInput" placeholder="Enter name or civil ID">
+
+  <input type="text" id="searchInput" placeholder="أدخل البيانات (رقم مدني أو أسم أو رقم قاعة)">
   <button id="searchBtn">Search</button>
 
-  <p id="status">Loading CSV file from GitHub...</p>
+  <p id="status">...........</p>
 
   <div id="resultsContainer"></div>
 
@@ -62,7 +65,7 @@
       skipEmptyLines: true,
       complete: function(results) {
         csvData = results.data;
-        document.getElementById('status').textContent = 'CSV loaded successfully! You can now search.';
+        document.getElementById('status').textContent = '......';
       },
       error: function(err) {
         console.error(err);
@@ -108,3 +111,4 @@
   </script>
 </body>
 </html>
+
