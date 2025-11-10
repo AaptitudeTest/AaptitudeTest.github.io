@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CSV Search</title>
+  <title>App List Search</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
@@ -33,17 +33,20 @@
       background-color: #007bff;
       color: white;
     }
+    #status {
+      margin-top: 10px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Search App List (CSV)</h2>
-
-  <label for="csvFile">Select CSV File:</label><br>
-  <input type="file" id="csvFile" accept=".csv"><br><br>
+  <h2>Search App List</h2>
 
   <input type="text" id="searchInput" placeholder="Enter name or civil ID">
   <button id="searchBtn">Search</button>
+
+  <p id="status">Loading CSV file from GitHub...</p>
 
   <table id="resultsTable" style="display:none;">
     <thead id="tableHead"></thead>
@@ -53,18 +56,19 @@
   <script>
     let csvData = [];
 
-    document.getElementById('csvFile').addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          csvData = results.data;
-          alert('CSV loaded successfully! You can now search.');
-        }
-      });
+    // Load CSV automatically from GitHub (RAW link)
+    Papa.parse('https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/App_List.csv', {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        csvData = results.data;
+        document.getElementById('status').textContent = 'CSV loaded successfully! You can now search.';
+      },
+      error: function(err) {
+        console.error(err);
+        document.getElementById('status').textContent = 'Error loading CSV. Please check the link or CORS settings.';
+      }
     });
 
     document.getElementById('searchBtn').addEventListener('click', function() {
@@ -92,7 +96,6 @@
       thead.innerHTML = '';
       tbody.innerHTML = '';
 
-      // Table header
       const headers = Object.keys(data[0]);
       const headerRow = document.createElement('tr');
       headers.forEach(h => {
@@ -102,7 +105,6 @@
       });
       thead.appendChild(headerRow);
 
-      // Table rows
       data.forEach(row => {
         const tr = document.createElement('tr');
         headers.forEach(h => {
