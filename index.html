@@ -75,7 +75,7 @@
 
     document.getElementById('searchBtn').addEventListener('click', function() {
       const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
-      if (!searchValue) return alert('Please enter a name or civil ID.');
+      if (!searchValue) return alert('أدخل البيانات (رقم مدني أو أسم أو رقم قاعة)');
 
       const filtered = csvData.filter(row =>
         Object.values(row).some(val => val && val.toLowerCase().includes(searchValue))
