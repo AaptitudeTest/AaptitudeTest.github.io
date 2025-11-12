@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>أسماء الطلبة</title>
+  <title>App List Search (Exact Match)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -54,9 +54,6 @@
   </style>
 </head>
 <body>
-<img src="https://portal.ku.edu.kw/dist/img/Kuwait_University_logo.png">
-<center><h1><B> اختبار القدرات الأكاديمية</B></h1></center>
-<center><h1>أسماء الطلبة للفرصة الأولى 25-26</h1></center>
 
   <div class="search-container">
     <input type="text" id="searchInput" placeholder="اكتب الكلمة المطابقة تمامًا...">
@@ -145,4 +142,11 @@
 
     // Event listeners
     document.getElementById('searchBtn').addEventListener('click', doSearch);
-    document.getElementById('clearBtn').addEventListener('click',
+    document.getElementById('clearBtn').addEventListener('click', clearSearch);
+    document.getElementById('searchInput').addEventListener('keyup', e => {
+      if (e.key === 'Enter') doSearch();
+    });
+  </script>
+
+</body>
+</html>
