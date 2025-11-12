@@ -1,121 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>أسماء الطلبة</title>
-  <style>
-            body {
-                text-align: right;
-            }
-        </style>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f5f6fa;
+      margin: 20px;
+      direction: rtl; /* Right-to-left for alignment */
+      text-align: right;
+      background-color: #f8f9fa;
     }
-    h2 {
+
+    .search-container {
+      margin-bottom: 20px;
+      text-align: right;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      width: 250px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .result-card {
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .field {
+      margin: 4px 0;
+    }
+
+    .field strong {
       color: #333;
     }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px 0;
-    }
-    #status {
-      margin-top: 10px;
+
+    .no-results {
+      margin-top: 20px;
       font-style: italic;
-    }
-    .result-card {
-      background: white;
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .result-field {
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #eee;
-    }
-    .label {
-      font-weight: bold;
-      color: #007bff;
+      color: #777;
     }
   </style>
 </head>
 <body>
-
-  <img src="https://portal.ku.edu.kw/dist/img/Kuwait_University_logo.png">
+<img src="https://portal.ku.edu.kw/dist/img/Kuwait_University_logo.png">
 <center><h1><B> اختبار القدرات الأكاديمية</B></h1></center>
 <center><h1>أسماء الطلبة للفرصة الأولى 25-26</h1></center>
 
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="اكتب الكلمة المطابقة تمامًا...">
+    <button id="searchBtn">بحث</button>
+    <button id="clearBtn">مسح</button>
+  </div>
 
-  <input type="text" id="searchInput" placeholder="أدخل البيانات (رقم مدني أو أسم أو رقم قاعة)">
-  <button id="searchBtn">ابحث</button>
-
-  <p id="status">...........</p>
-
-  <div id="resultsContainer"></div>
+  <div id="results"></div>
+  <div id="noResults" class="no-results" style="display: none;">لا توجد نتائج مطابقة.</div>
 
   <script>
-    let csvData = [];
+    const csvUrl = "https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/App_List.csv";
+    let data = [];
+    let headers = [];
 
-    // Load CSV automatically from GitHub (RAW link)
-    Papa.parse('https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/App_List.csv', {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-        csvData = results.data;
-        document.getElementById('status').textContent = '......';
-      },
-      error: function(err) {
-        console.error(err);
-        document.getElementById('status').textContent = 'Error loading CSV. Please check the link or CORS settings.';
-      }
-    });
+    // Parse CSV into array of objects
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      headers = lines[0].split(',').map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const parts = line.split(',');
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = parts[i] ? parts[i].trim() : "";
+        });
+        return obj;
+      });
+    }
 
-    document.getElementById('searchBtn').addEventListener('click', function() {
-      const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
-      if (!searchValue) return alert('أدخل البيانات (رقم مدني أو أسم أو رقم قاعة)');
-
-      const filtered = csvData.filter(row =>
-        Object.values(row).some(val => val && val.toLowerCase().includes(searchValue))
-      );
-
-      displayResults(filtered);
-    });
-
-    function displayResults(data) {
-      const container = document.getElementById('resultsContainer');
+    // Render vertical results
+    function renderResults(results) {
+      const container = document.getElementById('results');
       container.innerHTML = '';
-
-      if (data.length === 0) {
-        container.innerHTML = '<p>No results found.</p>';
+      if (results.length === 0) {
+        document.getElementById('noResults').style.display = 'block';
         return;
       }
-
-      data.forEach((row, index) => {
+      document.getElementById('noResults').style.display = 'none';
+      results.forEach(row => {
         const card = document.createElement('div');
         card.className = 'result-card';
-
-        const headers = Object.keys(row);
         headers.forEach(h => {
-          const fieldDiv = document.createElement('div');
-          fieldDiv.className = 'result-field';
-          fieldDiv.innerHTML = `<span class="label">${h}:</span> ${row[h] || ''}`;
-          card.appendChild(fieldDiv);
+          const field = document.createElement('div');
+          field.className = 'field';
+          field.innerHTML = `<strong>${h}:</strong> ${row[h]}`;
+          card.appendChild(field);
         });
-
         container.appendChild(card);
       });
     }
-  </script>
-</body>
-</html>
 
+    // Search (exact match only)
+    function doSearch() {
+      const term = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!term) {
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('noResults').style.display = 'none';
+        return;
+      }
 
+      // Exact match instead of includes()
+      const filtered = data.filter(row =>
+        headers.some(h => row[h].toLowerCase() === term)
+      );
 
+      renderResults(filtered);
+    }
+
+    // Clear results
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('noResults').style.display = 'none';
+    }
+
+    // Load CSV data
+    fetch(csvUrl)
+      .then(resp => resp.text())
+      .then(txt => {
+        data = parseCSV(txt);
+      })
+      .catch(err => {
+        console.error("Error loading CSV:", err);
+        document.getElementById('results').innerHTML = "<p style='color:red;'>فشل تحميل البيانات.</p>";
+      });
+
+    // Event listeners
+    document.getElementById('searchBtn').addEventListener('click', doSearch);
+    document.getElementById('clearBtn').addEventListener('click',
