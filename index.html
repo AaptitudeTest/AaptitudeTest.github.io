@@ -12,51 +12,24 @@
       padding: 20px;
       color: #222;
     }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+    .header { text-align: center; margin-bottom: 30px; }
     .card {
-      background: #fff;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
+      background: #fff; border-radius: 15px; padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;
     }
     .controls {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+      display: flex; justify-content: center; gap: 10px;
+      flex-wrap: wrap; margin-bottom: 20px;
     }
     input, select, button {
-      padding: 10px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #bbb;
+      padding: 10px; font-size: 15px; border-radius: 8px; border: 1px solid #bbb;
     }
-    button {
-      cursor: pointer;
-      background: #0066cc;
-      color: white;
-      border: none;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #004da3;
-    }
-    .highlight {
-      background: yellow;
-      font-weight: bold;
-      padding: 2px;
-    }
-    .no-results {
-      text-align: center;
-      color: #777;
-      margin-top: 20px;
-      font-style: italic;
-    }
+    button { cursor: pointer; background: #0066cc; color: white; border: none; }
+    button:hover { background: #004da3; }
+    .highlight { background: yellow; font-weight: bold; padding: 2px; }
+    .pagination { text-align: center; margin: 20px 0; }
+    .pagination button { margin: 0 5px; }
+    .result-count { text-align: center; font-size: 18px; margin-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -68,110 +41,117 @@
 
   <div class="controls">
     <input type="text" id="searchInput" placeholder="ابحث... (جزئية أو كاملة)">
-    <select id="columnFilter">
-      <option value="all">جميع الحقول</option>
-    </select>
+    <select id="columnFilter"><option value="all">جميع الحقول</option></select>
     <button id="searchBtn">بحث</button>
     <button id="clearBtn">مسح</button>
+    <button id="printBtn">طباعة</button>
+    <button id="pdfBtn">PDF</button>
   </div>
 
+  <div class="result-count" id="resultCount"></div>
   <div id="results"></div>
-  <div id="noResults" class="no-results" style="display:none;">لا توجد نتائج مطابقة.</div>
+  <div class="pagination" id="pagination"></div>
 
 
-  <script>
-    const csvUrl = "https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/App_List.csv";
-    let data = [];
-    let headers = [];
+<script>
+const csvUrl = "https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/App_List.csv";
+let data = [], headers = [], filtered = [];
+let page = 1, perPage = 10;
 
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      headers = lines[0].split(',').map(h => h.trim());
+function parseCSV(text) {
+  const lines = text.trim().split(/
+?
+/);
+  headers = lines[0].split(',');
 
-      const select = document.getElementById('columnFilter');
-      headers.forEach(h => {
-        const option = document.createElement('option');
-        option.value = h;
-        option.textContent = h;
-        select.appendChild(option);
-      });
+  const select = document.getElementById('columnFilter');
+  headers.forEach(h => select.innerHTML += `<option value="${h}">${h}</option>`);
 
-      return lines.slice(1).map(line => {
-        const parts = line.split(',');
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = parts[i] ? parts[i].trim() : "");
-        return obj;
-      });
-    }
+  return lines.slice(1).map(line => {
+    const parts = line.split(',');
+    let obj = {}; headers.forEach((h, i) => obj[h] = parts[i] ?? "");
+    return obj;
+  });
+}
 
-    function highlight(text, term) {
-      if (!term) return text;
-      const regex = new RegExp(`(${term})`, 'gi');
-      return text.replace(regex, '<span class="highlight">$1</span>');
-    }
+function highlight(text, term) {
+  return text.replace(new RegExp(`(${term})`, 'gi'), '<span class="highlight">$1</span>');
+}
 
-    function renderResults(results, term) {
-      const container = document.getElementById('results');
-      container.innerHTML = '';
+function renderResults() {
+  const container = document.getElementById('results');
+  container.innerHTML = '';
 
-      if (results.length === 0) {
-        document.getElementById('noResults').style.display = 'block';
-        return;
-      }
+  const start = (page - 1) * perPage;
+  const list = filtered.slice(start, start + perPage);
 
-      document.getElementById('noResults').style.display = 'none';
+  list.forEach(row => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    headers.forEach(h => card.innerHTML += `<div><strong>${h}:</strong> ${highlight(row[h], searchTerm)}</div>`);
+    container.appendChild(card);
+  });
 
-      results.forEach(row => {
-        const card = document.createElement('div');
-        card.className = 'card';
+  document.getElementById('resultCount').textContent = `عدد النتائج: ${filtered.length}`;
+  renderPagination();
+}
 
-        headers.forEach(h => {
-          const div = document.createElement('div');
-          div.innerHTML = `<strong>${h}:</strong> ${highlight(row[h], term)}`;
-          card.appendChild(div);
-        });
+function renderPagination() {
+  const pages = Math.ceil(filtered.length / perPage);
+  const p = document.getElementById('pagination');
+  p.innerHTML = '';
 
-        container.appendChild(card);
-      });
-    }
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.style.background = i === page ? '#004da3' : '#0066cc';
+    btn.onclick = () => { page = i; renderResults(); };
+    p.appendChild(btn);
+  }
+}
 
-    function doSearch() {
-      const term = document.getElementById('searchInput').value.trim().toLowerCase();
-      const filter = document.getElementById('columnFilter').value;
+let searchTerm = "";
+function doSearch() {
+  searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+  const f = document.getElementById('columnFilter').value;
 
-      if (!term) {
-        clearSearch();
-        return;
-      }
+  filtered = data.filter(row =>
+    f === 'all' ? headers.some(h => row[h].toLowerCase().includes(searchTerm)) : row[f].toLowerCase().includes(searchTerm)
+  );
 
-      const filtered = data.filter(row => {
-        if (filter === 'all') {
-          return headers.some(h => row[h].toLowerCase().includes(term));
-        } else {
-          return row[filter].toLowerCase().includes(term);
-        }
-      });
+  page = 1;
+  renderResults();
+}
 
-      renderResults(filtered, term);
-    }
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  filtered = [];
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('pagination').innerHTML = '';
+  document.getElementById('resultCount').textContent = '';
+}
 
-    function clearSearch() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('results').innerHTML = '';
-      document.getElementById('noResults').style.display = 'none';
-    }
+// Print
+function printResults() { window.print(); }
 
-    fetch(csvUrl)
-      .then(r => r.text())
-      .then(t => data = parseCSV(t))
-      .catch(err => alert('خطأ في تحميل البيانات'));
+// PDF Export using browser Print-to-PDF
+document.getElementById('pdfBtn').onclick = () => { window.print(); };
 
-    document.getElementById('searchBtn').onclick = doSearch;
-    document.getElementById('clearBtn').onclick = clearSearch;
+document.getElementById('printBtn').onclick = printResults;
+document.getElementById('searchBtn').onclick = doSearch;
+document.getElementById('clearBtn').onclick = clearSearch;
+document.getElementById('searchInput').addEventListener('keyup', e => { if (e.key === 'Enter') doSearch(); });
 
-    document.getElementById('searchInput').addEventListener('keyup', e => {
-      if (e.key === 'Enter') doSearch();
-    });
-  </script>
+// AI Assisted Smart Search
+function smartAIsearch(term) {
+  term = term.toLowerCase();
+  return data.filter(row => headers.some(h => row[h].toLowerCase().startsWith(term) || row[h].toLowerCase().includes(term)));
+}
+
+fetch(csvUrl)
+  .then(r => r.text())
+  .then(t => data = parseCSV(t));
+</script>
 </body>
 </html>
+
