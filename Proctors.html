@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Proctors Directory</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    select {
+      padding: 8px;
+      font-size: 14px;
+    }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .label {
+      font-weight: bold;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Proctors Directory</h2>
+
+<h3>Filter</h3>
+<div id="filters" class="filters"></div>
+
+<div id="cards"></div>
+
+<script>
+const CSV_URL =
+  "https://raw.githubusercontent.com/AaptitudeTest/AaptitudeTest.github.io/main/Proctors.csv";
+
+let headers = [];
+let rows = [];
+let selected = {};
+
+fetch(CSV_URL)
+  .then(res => res.text())
+  .then(text => {
+    parseCSV(text);
+    buildFilters();
+    renderCards();
+  });
+
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  headers = lines[0].split(",");
+  rows = lines.slice(1).map(r => r.split(","));
+}
+
+function buildFilters() {
+  const container = document.getElementById("filters");
+  container.innerHTML = "";
+  selected = {};
+
+  headers.forEach((header, colIndex) => {
+    const select = document.createElement("select");
+    select.dataset.col = colIndex;
+
+    select.onchange = () => {
+      selected[colIndex] = select.value;
+      updateAllFilters();
+      renderCards();
+    };
+
+    container.appendChild(select);
+  });
+
+  updateAllFilters();
+}
+
+function updateAllFilters() {
+  document.querySelectorAll("#filters select").forEach(select => {
+    const col = select.dataset.col;
+
+    // rows filtered by previous selections
+    const filteredRows = rows.filter(row =>
+      Object.entries(selected).every(
+        ([c, val]) => !val || row[c] === val
+      )
+    );
+
+    const values = [...new Set(filteredRows.map(r => r[col]).filter(Boolean))];
+
+    const currentValue = select.value;
+    select.innerHTML = `<option value="">All ${headers[col]}</option>`;
+
+    values.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      if (v === currentValue) opt.selected = true;
+      select.appendChild(opt);
+    });
+  });
+}
+
+function renderCards() {
+  const container = document.getElementById("cards");
+  container.innerHTML = "";
+
+  rows
+    .filter(row =>
+      Object.entries(selected).every(
+        ([col, val]) => !val || row[col] === val
+      )
+    )
+    .forEach(row => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      headers.forEach((h, i) => {
+        const div = document.createElement("div");
+        div.innerHTML = `<span class="label">${h}:</span> ${row[i] || ""}`;
+        card.appendChild(div);
+      });
+
+      container.appendChild(card);
+    });
+}
+</script>
+
+</body>
+</html>
