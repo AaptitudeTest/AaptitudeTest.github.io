@@ -188,7 +188,9 @@
     document.getElementById('searchInput').addEventListener('keyup', e => {
       if (e.key === 'Enter') doSearch();
     });
-<script>
+
+  </script>
+  <script>
   function onScanSuccess(decodedText) {
     document.getElementById("searchInput").value = decodedText;
     doSearch();
@@ -207,9 +209,9 @@
   html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 </script>
 
-  </script>
 </body>
 </html>
+
 
 
 
