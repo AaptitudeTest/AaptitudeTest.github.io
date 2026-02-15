@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -62,16 +60,8 @@
       font-style: italic;
     }
   </style>
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 </head>
 <body>
-<div class="card" style="text-align:center;">
-  <h3>📷 قارئ الباركود / QR</h3>
-  <div id="reader" style="width:300px; margin:auto;"></div>
-  <p style="color:#666; font-size:14px;">وجّه الكاميرا نحو الباركود أو QR</p>
-</div>
-
   <div class="header">
     <img src="https://portal.ku.edu.kw/dist/img/Kuwait_University_logo.png" >
     <h1>اختبار القدرات الأكاديمية</h1>
@@ -188,31 +178,9 @@
     document.getElementById('searchInput').addEventListener('keyup', e => {
       if (e.key === 'Enter') doSearch();
     });
-
   </script>
-  <script>
-  function onScanSuccess(decodedText) {
-    document.getElementById("searchInput").value = decodedText;
-    doSearch();
-  }
-
-  function onScanFailure(error) {
-    // ignore scan errors
-  }
-
-  const html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 250 },
-    false
-  );
-
-  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-</script>
-
 </body>
 </html>
-
-
 
 
 
